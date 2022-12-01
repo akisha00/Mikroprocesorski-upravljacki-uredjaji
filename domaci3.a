@@ -1,0 +1,336 @@
+org 0x00
+jmp MAIN
+
+mode data 20h
+speed data 21h
+counter data 30h
+counter_save data 31h
+i data 32h
+j data 33h
+k data 34h
+
+
+program1:
+ db 00H
+ db 80H
+ db 40H
+ db 20H
+ db 10H
+ db 08H
+ db 04H
+ db 02H
+ db 01H
+
+program2:
+ db 00H
+ db 00H
+ db 0FFH
+
+program3:
+ db 00H
+ db 81H
+ db 42H
+ db 24H
+ db 18H
+ db 24H
+ db 42H
+ db 81H
+
+program4:
+ db 00H
+ db 081H
+ db 0C3H
+ db 0E7H
+ db 0FFH
+ db 0E7H
+ db	0C3H
+ db 081H
+
+
+MAIN:
+ 
+ mov speed, #1
+ jnb P0.0 , mode_select
+ jnb P0.1 , stop
+ jmp MAIN
+
+
+mode_select:
+
+ jnb P0.1, stop
+ jmp speed_select
+
+
+speed_select:
+
+ jnb P0.2, speed_select_1
+ jnb P0.3, speed_select_2
+ jmp program_select
+
+speed_select_1:
+
+ MOV speed, #1
+ jmp program_select
+
+speed_select_2:
+
+ MOV speed, #2
+ jmp program_select
+
+stop:
+
+ jnb P0.0, mode_select
+ mov P2, #0h
+ jmp stop
+
+program_select:
+ mov P2, #0h
+ jnb P0.4, program_1
+ jnb P0.5, program_2
+ jnb P0.6, program_3_t
+ jnb P0.7, program_4_t
+ jmp mode_select
+
+program_3_t:
+ jmp program_3
+
+program_4_t:
+ jmp program_4
+
+program_1:
+
+ mov DPTR, #program1
+ mov counter, #8
+ mov counter_save, #8
+program_1_1:
+
+ jnb P0.1 , stop
+ jnb P0.4, program_1
+ jnb P0.5, program_2
+ jnb P0.6, program_3
+ jnb P0.7, program_4_t
+ jnb P0.2, speed_select_11
+ jnb P0.3, speed_select_21
+ jb speed.0, delay1_1
+ jb speed.1, delay1_2
+ 
+
+program_1_2:
+
+ mov A, counter
+ movc A, @A+DPTR
+ mov P2, A
+ djnz counter, program_1_1
+ mov counter, counter_save
+ jmp program_1_1
+
+
+speed_select_11:
+ mov speed, #1
+ jmp program_1_1
+
+speed_select_21:
+ mov speed, #2
+ jmp program_1_1
+
+delay1_1:
+
+ lcall delay_1
+ jmp program_1_2
+
+delay1_2:
+
+ lcall delay_2
+ jmp program_1_2
+ 
+ 
+program_2:
+
+ mov DPTR, #program2
+ mov counter, #2
+ mov counter_save, #2
+
+program_2_1:
+
+ jnb P0.1 , stop
+ jnb P0.4, program_1
+ jnb P0.5, program_2
+ jnb P0.6, program_3
+ jnb P0.7, program_4_t
+ jnb P0.2, speed_select_12
+ jnb P0.3, speed_select_22
+ jb speed.0, delay2_1
+ jb speed.1, delay2_2 
+
+program_2_2:
+
+ mov A, counter
+ movc A, @A+DPTR
+ mov P2, A
+ djnz counter, program_2_1
+ mov counter, counter_save
+ jmp program_2_1
+
+speed_select_12:
+ mov speed, #1
+ jmp program_2_1
+
+speed_select_22:
+ mov speed, #2
+ jmp program_2_1
+
+delay2_1:
+
+ lcall delay_1
+ jmp program_2_2
+
+delay2_2:
+
+ lcall delay_2
+ jmp program_2_2
+
+program_3:
+
+ mov DPTR, #program3
+ mov counter, #7
+ mov counter_save, #7
+program_3_1:
+
+ jnb P0.1 , stop_t_3
+ jnb P0.4, program_1_t
+ jnb P0.5, program_2
+ jnb P0.6, program_3
+ jnb P0.7, program_4
+ jnb P0.2, speed_select_13
+ jnb P0.3, speed_select_23
+ jb speed.0, delay3_1
+ jb speed.1, delay3_2
+
+program_3_2:
+
+ mov A, counter
+ movc A, @A+DPTR
+ mov P2, A
+ djnz counter, program_3_1
+ mov counter, counter_save
+ jmp program_3_1
+
+speed_select_13:
+ mov speed, #1
+ jmp program_3_1
+
+speed_select_23:
+ mov speed, #2
+ jmp program_3_1
+
+delay3_1:
+
+ lcall delay_1
+ jmp program_3_2
+
+delay3_2:
+
+ lcall delay_2
+ jmp program_3_2
+
+stop_t_3:
+ jmp stop
+
+program_4:
+ mov DPTR, #program4
+ mov counter, #7
+ mov counter_save, #7
+
+program_4_1:
+
+ jnb P0.1 , stop_t
+ jnb P0.4, program_1_t
+ jnb P0.5, program_2_t
+ jnb P0.6, program_3
+ jnb P0.7, program_4
+ jnb P0.2, speed_select_14
+ jnb P0.3, speed_select_24
+ jb speed.0, delay4_1
+ jb speed.1, delay4_2 
+
+program_4_2:
+ mov A, counter
+ movc A, @A+DPTR
+ mov P2, A
+ djnz counter, program_4_1
+ mov counter, counter_save
+ jmp program_4_1
+
+speed_select_14:
+ mov speed, #1
+ jmp program_4_1
+
+speed_select_24:
+ mov speed, #2
+ jmp program_4_1
+
+delay4_1:
+
+ lcall delay_1
+ jmp program_4_2
+
+delay4_2:
+
+ lcall delay_2
+ jmp program_4_2
+
+program_1_t:
+ jmp program_1
+
+program_2_t:
+ jmp program_2
+
+stop_t:
+ jmp stop
+
+MAIN_T:
+ jmp MAIN
+
+mode_select_t:
+ jmp mode_select
+
+
+delay_1:
+ mov i, #60
+ for1:
+  mov j, #50
+  djnz i, for2
+  jmp end_delay_1
+  for2:
+   mov k, #50
+   djnz j, for3 
+   jmp for1
+   for3:
+    dec k
+	mov A, k
+	jz for2
+	jmp for3
+ end_delay_1:  
+  ret
+
+delay_2:
+ mov i, #120
+ for12:
+  mov j, #50
+  djnz i, for22
+  jmp end_delay_2
+  for22:
+   mov k, #50
+   djnz j, for32 
+   jmp for12
+   for32:
+    dec k
+	mov A, k
+	jz for22
+	jmp for32
+ end_delay_2:  
+  ret
+
+
+
+ end
