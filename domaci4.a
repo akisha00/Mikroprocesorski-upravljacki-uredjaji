@@ -1,0 +1,202 @@
+org 0x00
+lcall interrupt_setup
+jmp MAIN
+
+org 0x1B
+jmp interrupt_handler_T1
+
+pomocna1 data 30h
+pomocna1_counter data 31h
+counter data 32h
+counter_save data 33h
+status data 20h
+
+
+program1:
+ db 00H
+ db 80H
+ db 40H
+ db 20H
+ db 10H
+ db 08H
+ db 04H
+ db 02H
+ db 01H
+
+program2:
+ db 00H
+ db 00H
+ db 0FFH
+
+program3:
+ db 00H
+ db 81H
+ db 42H
+ db 24H
+ db 18H
+ db 24H
+ db 42H
+ db 81H
+
+program4:
+ db 00H
+ db 081H
+ db 0C3H
+ db 0E7H
+ db 0FFH
+ db 0E7H
+ db	0C3H
+ db 081H
+
+
+interrupt_handler_T1:
+ 
+ push ACC
+ djnz pomocna1, end_interrupt
+ mov pomocna1, #250
+ djnz pomocna1_counter, end_interrupt
+ mov pomocna1_counter, #16
+ setb status.0 
+
+ end_interrupt:
+
+  pop ACC
+
+ reti
+
+
+interrupt_setup:
+ mov TMOD, #20H
+ setb TR1
+
+
+ setb ET1
+ setb EA
+
+ mov TH1, #19h
+ mov TL1, TH1
+
+ ret
+
+
+MAIN:
+
+ mov pomocna1, #250
+ mov pomocna1_counter, #16
+ lcall start_stop
+ lcall program_select
+ jmp MAIN
+
+
+start_stop:
+ jnb P0.0, start
+ jnb P0.1, stop
+start_stop_e:
+ ret
+
+start:
+ setb status.1
+ jmp start_stop_e
+
+stop:
+ clr status.1
+ jmp start_stop_e
+
+
+program_select:
+ lcall start_stop
+ jnb status.1, MAIN
+ jnb P0.4, program_1
+ jnb P0.5, program_2
+ jnb P0.6, program_3
+ jnb P0.7, program_4
+ ret
+
+program_1:
+
+ mov DPTR, #program1
+ mov counter, #8
+ mov counter_save, #8
+
+program_1_1:
+
+ lcall program_select
+ jnb status.0, program_1_1
+
+program_1_2:
+
+ clr status.0
+ mov A, counter
+ movc A, @A+DPTR
+ mov P2, A
+ djnz counter, program_1_1
+ mov counter, counter_save
+ jmp program_1_1
+
+program_2:
+
+ mov DPTR, #program2
+ mov counter, #2
+ mov counter_save, #2
+
+program_2_1:
+
+ lcall program_select
+ jnb status.0, program_2_1
+
+program_2_2:
+
+ clr status.0
+ mov A, counter
+ movc A, @A+DPTR
+ mov P2, A
+ djnz counter, program_2_1
+ mov counter, counter_save
+ jmp program_2_1
+
+
+program_3:
+
+ mov DPTR, #program3
+ mov counter, #7
+ mov counter_save, #7
+
+program_3_1:
+
+ lcall program_select
+ jnb status.0, program_3_1
+
+program_3_2:
+ 
+ clr status.0
+ mov A, counter
+ movc A, @A+DPTR
+ mov P2, A
+ djnz counter, program_3_1
+ mov counter, counter_save
+ jmp program_3_1
+
+
+program_4:
+ mov DPTR, #program4
+ mov counter, #7
+ mov counter_save, #7
+
+program_4_1:
+
+ lcall program_select
+ jnb status.0, program_4_1
+
+program_4_2:
+
+ clr status.0
+ mov A, counter
+ movc A, @A+DPTR
+ mov P2, A
+ djnz counter, program_4_1
+ mov counter, counter_save
+ jmp program_4_1
+
+
+end
+ 
