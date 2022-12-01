@@ -55,14 +55,21 @@ interrupt_handler_T1:
  djnz pomocna1, end_interrupt
  mov pomocna1, #250
  djnz pomocna1_counter, end_interrupt
+ jnb status.2,  end_interrupt_2
  mov pomocna1_counter, #16
  setb status.0 
 
  end_interrupt:
 
   pop ACC
+  reti
 
- reti
+ end_interrupt_2:
+
+  mov pomocna1_counter, #32
+  setb status.0
+  pop ACC
+  reti
 
 
 interrupt_setup:
@@ -83,34 +90,50 @@ MAIN:
 
  mov pomocna1, #250
  mov pomocna1_counter, #16
- lcall start_stop
- lcall program_select
+ setb status.2
+ jmp start_stop
  jmp MAIN
 
 
 start_stop:
  jnb P0.0, start
  jnb P0.1, stop
-start_stop_e:
- ret
+ jmp speed_select
 
 start:
  setb status.1
- jmp start_stop_e
+ jmp speed_select
 
 stop:
  clr status.1
- jmp start_stop_e
+ mov P2, #0
+ jmp MAIN
 
+speed_select:
+ jnb P0.2, speed1
+ jnb P0.3, speed2
+ jmp program_select
+
+speed1:
+ setb status.2
+ jmp program_select
+
+speed2:
+ clr status.2
+ jmp program_select
 
 program_select:
- lcall start_stop
  jnb status.1, MAIN
  jnb P0.4, program_1
  jnb P0.5, program_2
- jnb P0.6, program_3
- jnb P0.7, program_4
- ret
+ jnb P0.6, program_3_t
+ jnb P0.7, program_4_t
+ jmp program_select
+program_3_t:
+ jmp program_3
+
+program_4_t:
+ jmp program_4
 
 program_1:
 
@@ -119,8 +142,13 @@ program_1:
  mov counter_save, #8
 
 program_1_1:
-
- lcall program_select
+ jnb P0.1, stop
+ jnb status.1, MAIN
+ jnb P0.2, speed11
+ jnb P0.3, speed21
+ jnb P0.5, program_2
+ jnb P0.6, program_3_t
+ jnb P0.7, program_4_t
  jnb status.0, program_1_1
 
 program_1_2:
@@ -133,6 +161,15 @@ program_1_2:
  mov counter, counter_save
  jmp program_1_1
 
+speed11:
+ setb status.2
+ jmp program_1_1
+
+speed21:
+ clr status.2
+ jmp program_1_1
+
+
 program_2:
 
  mov DPTR, #program2
@@ -141,7 +178,13 @@ program_2:
 
 program_2_1:
 
- lcall program_select
+ jnb P0.1, stop
+ jnb status.1, MAIN_T
+ jnb P0.2, speed12
+ jnb P0.3, speed22
+ jnb P0.4, program_1
+ jnb P0.6, program_3_t
+ jnb P0.7, program_4_t
  jnb status.0, program_2_1
 
 program_2_2:
@@ -154,6 +197,19 @@ program_2_2:
  mov counter, counter_save
  jmp program_2_1
 
+speed12:
+ setb status.2
+ jmp program_2_1
+
+speed22:
+ clr status.2
+ jmp program_2_1
+
+MAIN_T:
+ jmp MAIN
+
+program_1_t:
+ jmp program_1
 
 program_3:
 
@@ -163,7 +219,13 @@ program_3:
 
 program_3_1:
 
- lcall program_select
+ jnb P0.1, stop_t
+ jnb status.1, MAIN_T
+ jnb P0.2, speed13
+ jnb P0.3, speed23
+ jnb P0.4, program_1_t
+ jnb P0.5, program_2
+ jnb P0.7, program_4
  jnb status.0, program_3_1
 
 program_3_2:
@@ -176,6 +238,19 @@ program_3_2:
  mov counter, counter_save
  jmp program_3_1
 
+speed13:
+ setb status.2
+ jmp program_3_1
+
+speed23:
+ clr status.2
+ jmp program_3_1
+
+stop_t:
+ jmp stop
+ 
+program_2_t:
+ jmp program_2
 
 program_4:
  mov DPTR, #program4
@@ -184,7 +259,13 @@ program_4:
 
 program_4_1:
 
- lcall program_select
+ jnb P0.1, stop_t
+ jnb status.1, MAIN_T
+ jnb P0.2, speed14
+ jnb P0.3, speed24
+ jnb P0.4, program_1_t
+ jnb P0.5, program_2_t
+ jnb P0.6, program_3
  jnb status.0, program_4_1
 
 program_4_2:
@@ -197,6 +278,14 @@ program_4_2:
  mov counter, counter_save
  jmp program_4_1
 
+
+speed14:
+ setb status.2
+ jmp program_4_1
+
+speed24:
+ clr status.2
+ jmp program_4_1
 
 end
  
