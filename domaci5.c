@@ -25,10 +25,6 @@ unsigned char speed = 0;
 
 void interrupt_handler1() interrupt 3 
 {
-	if(!speed)
-		counter2 = 16;
-	else
-		counter2 = 8;
 	
 	if(++counter1 == 250)
 	{
@@ -58,9 +54,10 @@ void interrupt_init_T1()
 {
 	TMOD = 0x20;	 
 	TH1 = 0x18;
+	TL1 = 0x18;
 	EA = 1;
 	ET1 = 1;
-	TR0 = 1;	
+	TR1 = 1;	
 }
 
 
@@ -90,6 +87,7 @@ void main()
 			state = 0;
 			P2 = 0x00;
 			mode = 0;
+			counter2 = 0;
 		}
 
 		if(!state)
@@ -99,11 +97,11 @@ void main()
 			mode = 0;
 		}
 
-		if(P0_6 == 0)
+		if(!P0_6)
 		{
 			speed = 0;
 		}
-		else if(P0_7 == 0)
+		else if(!P0_7)
 		{
 			speed = 1;
 		}
@@ -139,12 +137,11 @@ void main()
 			mask_2 = 0x80;
 		}
 
-
-
 		if(!status)
 		{
 			continue;
 		}
+		status = 0;
 				
 		switch(mode)
 		{
